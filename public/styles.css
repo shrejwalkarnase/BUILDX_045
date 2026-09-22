@@ -1,0 +1,181 @@
+/* MedRescue Nagpur - Custom Emergency Medical & War Room Styles */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap');
+
+:root {
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  --emergency-red: #ef4444;
+  --emergency-red-dark: #b91c1c;
+  --medical-blue: #0284c7;
+  --status-green: #10b981;
+  --caution-amber: #f59e0b;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: #0b0f19;
+  color: #f1f5f9;
+}
+
+/* Pulsing SOS Button Radar Waves */
+.pulse-ring {
+  position: relative;
+}
+.pulse-ring::before,
+.pulse-ring::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 9999px;
+  border: 2px solid rgba(239, 68, 68, 0.6);
+  pointer-events: none;
+  animation: pulseRadar 2.4s infinite ease-out;
+}
+.pulse-ring::after {
+  animation-delay: 1.2s;
+}
+
+@keyframes pulseRadar {
+  0% {
+    width: 100%;
+    height: 100%;
+    opacity: 0.9;
+  }
+  100% {
+    width: 210%;
+    height: 210%;
+    opacity: 0;
+  }
+}
+
+/* Emergency Alert Siren Banner Glow */
+@keyframes sirenFlash {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+    border-color: #ef4444;
+  }
+  50% {
+    box-shadow: 0 0 25px 6px rgba(239, 68, 68, 0.45);
+    border-color: #f87171;
+  }
+}
+.siren-alert {
+  animation: sirenFlash 1.6s infinite ease-in-out;
+}
+
+/* War Room Dark Command Theme */
+.warroom-bg {
+  background: radial-gradient(circle at 50% 20%, #111827 0%, #030712 100%);
+}
+
+.hud-panel {
+  background: rgba(17, 24, 39, 0.85);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(75, 85, 99, 0.35);
+}
+
+.hud-panel-danger {
+  background: rgba(30, 10, 10, 0.85);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(239, 68, 68, 0.5);
+}
+
+/* Custom Leaflet Map Container */
+.nagpur-map-container {
+  height: 520px;
+  width: 100%;
+  border-radius: 0.75rem;
+  z-index: 10;
+}
+
+/* Custom Marker Pins */
+.custom-div-icon {
+  background: transparent;
+  border: none;
+}
+
+.beacon-pin {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.beacon-red {
+  background: #ef4444;
+  color: white;
+  border: 3px solid white;
+}
+.beacon-blue {
+  background: #0284c7;
+  color: white;
+  border: 3px solid white;
+}
+.beacon-hospital-green {
+  background: #10b981;
+  color: white;
+  border: 3px solid white;
+}
+.beacon-hospital-amber {
+  background: #f59e0b;
+  color: white;
+  border: 3px solid white;
+}
+.beacon-hospital-red {
+  background: #e11d48;
+  color: white;
+  border: 3px solid white;
+}
+.beacon-blood {
+  background: #dc2626;
+  color: white;
+  border: 3px solid #fee2e2;
+}
+
+/* Moving Ambulance Vehicle Icon */
+.amb-moving-pin {
+  font-size: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: #2563eb;
+  color: white;
+  border-radius: 50%;
+  border: 2px solid #60a5fa;
+  box-shadow: 0 0 12px rgba(37, 99, 235, 0.8);
+  animation: ambBounce 1s infinite alternate ease-in-out;
+}
+@keyframes ambBounce {
+  from { transform: translateY(0); }
+  to { transform: translateY(-4px); }
+}
+
+/* Scrollbar polish */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #111827;
+}
+::-webkit-scrollbar-thumb {
+  background: #374151;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #4b5563;
+}
+
+.font-mono {
+  font-family: var(--font-mono);
+}

@@ -1,0 +1,6 @@
+{
+  "name": "MedRescue Nagpur",
+  "description": "Multi-role emergency medical coordination platform with real-time SSE, dispatch, hospital bed tracking, and clinical recommendation engine.",
+  "requestFramePermissions": ["geolocation"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

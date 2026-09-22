@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MedRescue Nagpur — Emergency Medical Grid</title>
+  <meta name="description" content="Multi-role emergency medical coordination platform for citizen SOS, ambulance dispatch, hospital ER/ICU triage, and blood bank reserves in Nagpur." />
+  <meta property="og:title" content="MedRescue Nagpur — Emergency Medical Grid" />
+  <meta property="og:description" content="Multi-role emergency medical coordination platform for citizen SOS, ambulance dispatch, hospital ER/ICU triage, and blood bank reserves in Nagpur." />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Font Awesome 6 Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+
+  <!-- Leaflet.js Maps CSS & JS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- MedRescue Nagpur Styles -->
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body class="warroom-bg min-h-screen text-slate-100 antialiased selection:bg-red-500 selection:text-white">
+
+  <!-- ================= TOP HEADER / HUD ================= -->
+  <header class="border-b border-slate-800/80 bg-slate-950/80 sticky top-0 z-40 backdrop-blur-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-wrap items-center justify-between gap-3">
+      
+      <!-- Brand & Live Beacon -->
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-lg bg-red-600 flex items-center justify-center text-white shadow-lg shadow-red-600/30">
+          <i class="fa-solid fa-star-of-life text-xl animate-pulse"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-base sm:text-lg font-black tracking-tight text-white uppercase">MedRescue Nagpur</h1>
+            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-red-950 text-red-400 border border-red-800">
+              WAR ROOM
+            </span>
+          </div>
+          <p class="text-[11px] text-slate-400">Nagpur Urban Emergency Response & Clinical Triage Grid</p>
+        </div>
+      </div>
+
+      <!-- Live Telemetry & Control Actions -->
+      <div class="flex items-center gap-2.5 sm:gap-4 text-xs font-mono">
+        <div id="istClock" class="px-2.5 py-1 rounded bg-slate-900 border border-slate-800 text-slate-300 font-bold hidden sm:inline-block">
+          --:--:-- IST
+        </div>
+
+        <div id="sseStatusBadge" class="px-2 py-0.5 rounded text-[11px] font-mono font-bold bg-amber-950 text-amber-400 border border-amber-800 flex items-center">
+          <span class="w-2 h-2 rounded-full bg-amber-400 inline-block mr-1"></span> CONNECTING SSE...
+        </div>
+
+        <button id="muteToggleBtn" title="Toggle Emergency Siren Audio" class="w-8 h-8 rounded-lg bg-slate-900 border border-slate-800 hover:bg-slate-800 flex items-center justify-center transition">
+          <i class="fa-solid fa-volume-high text-emerald-400"></i>
+        </button>
+
+        <button id="demoResetBtn" title="Reset Demo Data" class="px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-red-950/60 border border-slate-800 hover:border-red-800 text-slate-300 hover:text-red-300 transition flex items-center gap-1.5 font-sans font-medium text-xs">
+          <i class="fa-solid fa-rotate-left text-[11px]"></i>
+          <span class="hidden md:inline">Reset Demo</span>
+        </button>
+      </div>
+
+    </div>
+
+    <!-- Role Switcher Tabs -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 border-t border-slate-800/60 flex items-center gap-1.5 py-1.5 overflow-x-auto">
+      <button data-role-tab="control" class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-2 whitespace-nowrap bg-blue-600 text-white shadow-md">
+        <i class="fa-solid fa-shield-halved"></i> Control Room / War Room
+      </button>
+      <button data-role-tab="citizen" class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-2 whitespace-nowrap bg-slate-800 text-slate-300 hover:bg-slate-700">
+        <i class="fa-solid fa-bullhorn text-red-400"></i> Citizen SOS
+      </button>
+      <button data-role-tab="ambulance" class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-2 whitespace-nowrap bg-slate-800 text-slate-300 hover:bg-slate-700">
+        <i class="fa-solid fa-truck-medical text-blue-400"></i> Ambulance Unit
+      </button>
+      <button data-role-tab="hospital" class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-2 whitespace-nowrap bg-slate-800 text-slate-300 hover:bg-slate-700">
+        <i class="fa-solid fa-hospital text-emerald-400"></i> Hospital ER / ICU
+      </button>
+      <button data-role-tab="blood" class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-2 whitespace-nowrap bg-slate-800 text-slate-300 hover:bg-slate-700">
+        <i class="fa-solid fa-droplet text-red-500"></i> Blood Reserves
+      </button>
+    </div>
+  </header>
+
+  <!-- ================= MAIN CONTENT ================= -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
+
+    <!-- ================= 1. CONTROL ROOM / WAR ROOM VIEW ================= -->
+    <div data-role-view="control" class="space-y-4">
+      
+      <!-- Top Metrics Quick Bar -->
+      <div id="controlMetricsBar" class="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <!-- Rendered by app.js -->
+      </div>
+
+      <!-- Map & Active Incident Grid -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+        
+        <!-- Nagpur Map (7 cols) -->
+        <div class="lg:col-span-7 space-y-2">
+          <div class="hud-panel p-2.5 rounded-xl border border-slate-800 relative">
+            <div class="flex items-center justify-between px-2 py-1 mb-1.5 text-xs">
+              <div class="flex items-center gap-2 font-bold text-slate-300 uppercase">
+                <i class="fa-solid fa-satellite-dish text-blue-400"></i>
+                Nagpur City Emergency Grid Map
+              </div>
+              <div class="flex items-center gap-3 text-[11px] text-slate-400">
+                <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-red-500 inline-block"></span> Incident</span>
+                <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-blue-500 inline-block"></span> Ambulance</span>
+                <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"></span> Hospital</span>
+                <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-red-600 inline-block"></span> Blood Bank</span>
+              </div>
+            </div>
+            <!-- Leaflet Container -->
+            <div id="nagpurMap" class="nagpur-map-container"></div>
+          </div>
+        </div>
+
+        <!-- Active Incident Summary (5 cols) -->
+        <div class="lg:col-span-5 space-y-4">
+          <div id="controlActiveCaseCard" class="hud-panel p-4 rounded-xl border border-slate-800">
+            <!-- Rendered by app.js -->
+          </div>
+
+          <!-- Inter-Agency Chat / Dispatch Walkie -->
+          <div class="hud-panel p-3.5 rounded-xl border border-slate-800 flex flex-col h-72">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-2 mb-2">
+              <div class="text-xs font-bold text-slate-300 uppercase flex items-center gap-1.5">
+                <i class="fa-solid fa-walkie-talkie text-purple-400"></i>
+                Inter-Agency Dispatch Walkie
+              </div>
+              <span class="text-[10px] font-mono text-slate-500">Live SSE Channel</span>
+            </div>
+
+            <!-- Messages Stream -->
+            <div id="chatMessagesContainer" class="flex-1 overflow-y-auto space-y-2 pr-1">
+              <!-- Rendered by app.js -->
+            </div>
+
+            <!-- Input Bar -->
+            <form id="chatSendForm" class="mt-2 pt-2 border-t border-slate-800 flex gap-1.5">
+              <select id="chatSenderRole" class="bg-slate-900 border border-slate-700 text-slate-200 text-xs rounded px-1.5 py-1">
+                <option value="control">Control</option>
+                <option value="ambulance">Ambulance</option>
+                <option value="hospital">Hospital</option>
+                <option value="citizen">Citizen</option>
+              </select>
+              <input id="chatInputMessage" type="text" placeholder="Transmit coordination broadcast..." class="flex-1 bg-slate-900 border border-slate-700 text-slate-200 text-xs rounded px-2.5 py-1 focus:outline-none focus:border-blue-500" required />
+              <button type="submit" class="px-3 py-1 rounded bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition">
+                <i class="fa-solid fa-paper-plane"></i>
+              </button>
+            </form>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Clinical Hospital Recommendations Engine Section -->
+      <div class="hud-panel p-4 rounded-xl border border-slate-800">
+        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-3 mb-3">
+          <div>
+            <div class="flex items-center gap-2">
+              <i class="fa-solid fa-brain text-emerald-400"></i>
+              <h3 class="text-sm font-bold text-white uppercase tracking-wide">Automated Clinical Triage & Hospital Routing Engine</h3>
+            </div>
+            <p class="text-xs text-slate-400 mt-0.5">
+              Scoring algorithm computes: Haversine distance, travel ETA, ICU bed availability, on-duty specialist matching, trauma tier, and emergency OT readiness.
+            </p>
+          </div>
+          <span class="px-2.5 py-1 rounded bg-emerald-950 text-emerald-400 border border-emerald-800 font-mono text-xs font-bold">
+            Real-Time Scoring
+          </span>
+        </div>
+
+        <!-- Recommendations Cards -->
+        <div id="recommendationsList" class="space-y-2.5">
+          <!-- Rendered by app.js -->
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ================= 2. CITIZEN SOS VIEW ================= -->
+    <div data-role-view="citizen" class="hidden space-y-4 max-w-2xl mx-auto">
+      <div class="text-center py-2">
+        <div class="inline-flex items-center justify-center w-14 h-14 rounded-full bg-red-600/20 text-red-500 border border-red-500/40 mb-2">
+          <i class="fa-solid fa-hand-holding-medical text-2xl"></i>
+        </div>
+        <h2 class="text-xl font-black text-white uppercase tracking-tight">Citizen Emergency Medical SOS</h2>
+        <p class="text-xs text-slate-400">Directly alert central Nagpur dispatch and auto-allocate nearest emergency response unit</p>
+      </div>
+
+      <!-- Active SOS Banner (if already active) -->
+      <div id="citizenActiveStatus"></div>
+
+      <!-- SOS Form -->
+      <div class="hud-panel p-5 rounded-2xl border border-slate-800">
+        <form id="citizenSosForm" class="space-y-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1">Patient Name *</label>
+              <input id="sosPatientName" type="text" placeholder="e.g. Rohan Sharma" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-red-500" />
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1">Approximate Age</label>
+              <input id="sosPatientAge" type="number" placeholder="e.g. 28" value="28" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-red-500" />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1">Gender</label>
+              <select id="sosGender" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-red-500">
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1">Blood Group (if known)</label>
+              <select id="sosBloodGroup" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-red-500">
+                <option value="O+">O Positive (O+)</option>
+                <option value="O-">O Negative (O-)</option>
+                <option value="A+">A Positive (A+)</option>
+                <option value="A-">A Negative (A-)</option>
+                <option value="B+">B Positive (B+)</option>
+                <option value="B-">B Negative (B-)</option>
+                <option value="AB+">AB Positive (AB+)</option>
+                <option value="AB-">AB Negative (AB-)</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Quick Nagpur Location Preset</label>
+            <select id="sosLocationPreset" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-300 focus:outline-none focus:border-red-500">
+              <option value="">-- Choose Nagpur Landmark or specify below --</option>
+              <option value="0" selected>Wardha Road / Khapri Flyover (Pillar 114)</option>
+              <option value="1">Sitabuldi Interchange / Central Square</option>
+              <option value="2">Medical Square (Near GMCH Gate)</option>
+              <option value="3">Hingna T-Point / MIDC Zone</option>
+              <option value="4">Civil Lines / High Court Junction</option>
+              <option value="5">Pardi Flyover / Bhandara Road</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Landmark / Precise Address *</label>
+            <input id="sosLandmark" type="text" value="Wardha Road, Khapri Metro Station Pillar 114" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-red-500" />
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1">Latitude</label>
+              <input id="sosLat" type="text" value="21.0682" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm font-mono text-slate-300" />
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1">Longitude</label>
+              <input id="sosLng" type="text" value="79.0435" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm font-mono text-slate-300" />
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Emergency Condition & Injuries</label>
+            <textarea id="sosCondition" rows="3" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-red-500" placeholder="Describe incident details (e.g. road accident, chest trauma, unconscious)...">High-speed motorcycle collision at Khapri Flyover. Severe blunt trauma, tachycardic, right leg fracture.</textarea>
+          </div>
+
+          <button type="submit" class="w-full py-3.5 rounded-xl bg-red-600 hover:bg-red-500 active:bg-red-700 text-white font-black uppercase text-sm tracking-wider shadow-lg shadow-red-600/40 transition flex items-center justify-center gap-2">
+            <i class="fa-solid fa-triangle-exclamation text-base"></i>
+            TRANSMIT CRITICAL SOS BROADCAST
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- ================= 3. AMBULANCE VIEW ================= -->
+    <div data-role-view="ambulance" class="hidden space-y-4">
+      <div id="ambulanceViewContent">
+        <!-- Rendered by app.js -->
+      </div>
+    </div>
+
+    <!-- ================= 4. HOSPITAL ER / ICU VIEW ================= -->
+    <div data-role-view="hospital" class="hidden space-y-4">
+      <!-- Hospital Switcher -->
+      <div class="hud-panel p-3.5 rounded-xl border border-slate-800 flex flex-wrap items-center justify-between gap-3">
+        <div class="flex items-center gap-2">
+          <i class="fa-solid fa-hospital-user text-emerald-400"></i>
+          <span class="text-xs font-bold uppercase text-slate-300">Active Hospital Duty Station:</span>
+        </div>
+        <select id="hospitalSelectDropdown" class="bg-slate-900 border border-slate-700 text-white text-xs font-bold rounded-lg px-3 py-1.5 focus:outline-none focus:border-emerald-500">
+          <!-- Populated by app.js -->
+        </select>
+      </div>
+
+      <div id="hospitalDashboardContent">
+        <!-- Rendered by app.js -->
+      </div>
+    </div>
+
+    <!-- ================= 5. BLOOD BANK VIEW ================= -->
+    <div data-role-view="blood" class="hidden space-y-4">
+      <!-- Blood Bank Grid -->
+      <div id="bloodBankGrid">
+        <!-- Rendered by app.js -->
+      </div>
+
+      <!-- Quick Blood Requisition Form -->
+      <div class="hud-panel p-4 rounded-xl border border-slate-800">
+        <div class="text-xs font-bold text-red-400 uppercase tracking-wider mb-3">
+          <i class="fa-solid fa-plus-minus mr-1"></i> Submit Emergency Blood Transfusion Requisition
+        </div>
+        <form id="bloodReqForm" class="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+          <div>
+            <label class="block text-[11px] text-slate-400 mb-1">Requesting Hospital</label>
+            <select id="bloodReqHospital" class="w-full bg-slate-900 border border-slate-700 text-xs rounded p-2 text-white">
+              <option value="aiims-nagpur">AIIMS Nagpur (MIHAN)</option>
+              <option value="gmch-nagpur">GMCH Medical College</option>
+              <option value="kingsway-nagpur">Kingsway Hospitals</option>
+              <option value="orange-city-nagpur">Orange City Hospital</option>
+              <option value="wockhardt-nagpur">Wockhardt Hospital</option>
+              <option value="mayo-nagpur">Mayo Hospital</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-[11px] text-slate-400 mb-1">Patient Name</label>
+            <input id="bloodReqPatient" type="text" placeholder="Patient name" value="Rohan Sharma" class="w-full bg-slate-900 border border-slate-700 text-xs rounded p-2 text-white" required />
+          </div>
+          <div>
+            <label class="block text-[11px] text-slate-400 mb-1">Blood Group</label>
+            <select id="bloodReqGroup" class="w-full bg-slate-900 border border-slate-700 text-xs rounded p-2 text-white">
+              <option value="O+">O+</option>
+              <option value="O-">O-</option>
+              <option value="A+">A+</option>
+              <option value="A-">A-</option>
+              <option value="B+">B+</option>
+              <option value="B-">B-</option>
+              <option value="AB+">AB+</option>
+              <option value="AB-">AB-</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-[11px] text-slate-400 mb-1">Units Needed</label>
+            <input id="bloodReqUnits" type="number" min="1" max="10" value="2" class="w-full bg-slate-900 border border-slate-700 text-xs rounded p-2 text-white" required />
+          </div>
+          <div>
+            <label class="block text-[11px] text-slate-400 mb-1">Clinical Urgency</label>
+            <select id="bloodReqUrgency" class="w-full bg-slate-900 border border-slate-700 text-xs rounded p-2 text-white">
+              <option value="CRITICAL">CRITICAL (Immediate OT)</option>
+              <option value="URGENT">URGENT (< 1 Hour)</option>
+              <option value="STANDARD">STANDARD (Ward)</option>
+            </select>
+          </div>
+          <div class="flex items-end">
+            <button type="submit" class="w-full py-2 bg-red-600 hover:bg-red-500 text-white font-bold text-xs rounded transition flex items-center justify-center gap-1">
+              <i class="fa-solid fa-paper-plane text-[10px]"></i> Submit Requisition
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ================= TOAST NOTIFICATION CONTAINER ================= -->
+  <div id="toastNotification" style="display: none;"></div>
+
+  <!-- Scripts -->
+  <script src="/audio.js"></script>
+  <script src="/map.js"></script>
+  <script src="/app.js"></script>
+</body>
+</html>
