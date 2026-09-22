@@ -7,6 +7,7 @@ import { chatRouter } from './chat.js';
 import { statusRouter } from './status.js';
 import { recommendRouter } from './recommend.js';
 import { demoRouter } from './demo.js';
+import { extensionsRouter } from './extensions.js';
 import { registerSSEClient, removeSSEClient, getConnectedClientCount } from '../sse.js';
 
 export const apiRouter = Router();
@@ -41,3 +42,4 @@ apiRouter.use('/chat', chatRouter);
 apiRouter.use('/status', statusRouter);
 apiRouter.use('/recommend', recommendRouter);
 apiRouter.use('/demo', demoRouter);
+apiRouter.use('/extensions', extensionsRouter);
